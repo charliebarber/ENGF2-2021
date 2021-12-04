@@ -261,9 +261,10 @@ class Model():
         # the left hand home has centre position of spacing/2 (green to
         # the left of the home) + GRID_SIZE/2 (to get the centre of the
         # grid square)
-        x = (spacing + GRID_SIZE)//2
+        x = (spacing + GRID_SIZE)//2 - 200
         for i in range(0,6):
             x = x + GRID_SIZE + spacing
+            print(x)
             self.homes_x.append(x)
             self.homes_occupied.append(False)
 
@@ -295,11 +296,14 @@ class Model():
             self.homes_occupied[i] = False
 
     def died(self):
+        print("Died")
         self.lives = self.lives - 1
         self.controller.died()
+        print(self.lives)
         if self.lives == 0:
             self.game_over()
         else:
+            print("else called")
             self.pause_start(1, "self.new_life()")
 
     def pause_start(self, pause_time, unpause_function):
@@ -316,7 +320,9 @@ class Model():
             exec(self.unpause_function)
             
     def new_life(self):
+        print("new life called")
         self.controller.update_lives(self.lives)
+        self.frog.reset_position()
 
     def game_over(self):
         self.game_running = False
@@ -324,6 +330,7 @@ class Model():
         self.controller.game_over()
 
     def restart(self):
+        self.game_running = True
         self.level = 1
         self.score = 0
         self.reset_level()
@@ -368,7 +375,7 @@ class Model():
             # check if it's now on any other log
             for log in self.logs:
                 if log.contains(self.frog):
-                    on_long = log
+                    on_log = log
                     break
         if on_log is None:
             # frog is not on a log - it must be in the water
@@ -405,6 +412,9 @@ class Model():
         if x < 0 or x > CANVAS_WIDTH:
             self.died()
             return
+        if y < 0 or y > CANVAS_HEIGHT:
+            self.died()
+            return
 
         if y >= GRID_SIZE * 10 and y <= GRID_SIZE * 14:
             # frog is on the road
@@ -415,6 +425,10 @@ class Model():
         elif y == GRID_SIZE * 3:
             # frog is attempting to enter home
             self.check_frog_entering_home()
+
+        remaining_time = int(self.end_time - time.time())
+        if remaining_time < 0:
+            self.game_over()
 
     ''' adjust game speed so it's more or less the same on different machines '''
     def checkspeed(self):

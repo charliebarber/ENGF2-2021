@@ -5,7 +5,7 @@ from random import *
 from time import time
 
 #some global constants
-CANVAS_WIDTH = 1000
+CANVAS_WIDTH = 1500
 CANVAS_HEIGHT = 700
 SPACING = 100
 speed = 0.0
@@ -53,11 +53,14 @@ def shrink_building(canvas, building_num, building_width, building_heights, buil
     building_heights[building_num] = building_heights[building_num] - 50
     canvas.delete(building_rects[building_num])
     x = building_xpos[building_num]
-    building_rects[building_num] = canvas.create_rectangle(x, CANVAS_HEIGHT, x + building_width,
+    if (building_heights[building_num] > 0):
+        building_rects[building_num] = canvas.create_rectangle(x, CANVAS_HEIGHT, x + building_width,
                                                            CANVAS_HEIGHT-building_heights[building_num], fill="brown")
 
 ''' delete building number building_num from the canvas '''
 def delete_building(canvas, building_num, building_rects):
+    print('Delete func called', building_rects[building_num])
+    print("Passed num is", building_num)
     canvas.delete(building_rects[building_num])
 
 ''' initialize the state for the bomb.  As there's only one bomb, we store this 
@@ -93,6 +96,8 @@ def move_bomb(pos):
     global bomb_falling
     if bomb_falling:
         pos[1] = pos[1] + 8 * speed
+    if pos[1] > 700:
+        bomb_falling = False
 
 ''' drop the bomb from the plane at position plane_pos '''
 def drop_bomb(pos, plane_pos):
@@ -212,17 +217,20 @@ def create_buildings(canvas, building_width, building_heights, building_xpos, bu
     #remove any old buildings
     if len(building_rects) > 0:
         for building_num in range(0, 1200//SPACING):
+            print("Removing", building_num)
             delete_building(canvas, building_num, building_rects)
     building_heights.clear()
     building_xpos.clear()
 
     #create the new ones
     for building_num in range(0, 1200//SPACING):
+        print("New num is ", building_num)
         init_building(canvas, building_num, building_width, building_heights, building_xpos, building_rects)
 
 ''' check the state of the bomb each frame '''
 def check_bomb(canvas, bomb_pos, building_width, building_heights, building_xpos, building_rects):
     if not bomb_falling:
+        explode()
         return
     # did the bomb hit a building?
     for building_num in range(0, 1200//SPACING):
@@ -275,6 +283,7 @@ def plane_landed(canvas):
 def restart(canvas, plane_pos, building_heights,
             building_xpos, building_rects):
     global building_width, won, game_running, plane, msg_text
+    msg_text = ''
     canvas.delete(msg_text)
     level = 1
     score = 0
